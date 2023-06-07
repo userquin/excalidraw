@@ -36,6 +36,7 @@ import {
   BOUND_TEXT_PADDING,
   MAX_DECIMALS_FOR_SVG_EXPORT,
   MIME_TYPES,
+  ROUGHNESS,
   SVG_NS,
 } from "../constants";
 import { getStroke, StrokeOptions } from "perfect-freehand";
@@ -416,7 +417,8 @@ export const generateRoughOptions = (
     hachureGap: element.strokeWidth * 4,
     roughness: element.roughness,
     stroke: element.strokeColor,
-    preserveVertices: continuousPath,
+    preserveVertices:
+      continuousPath || element.roughness < ROUGHNESS.cartoonist,
   };
 
   switch (element.type) {
