@@ -50,6 +50,7 @@ import {
   DEFAULT_FONT_FAMILY,
   DEFAULT_FONT_SIZE,
   FONT_FAMILY,
+  FONT_SIZE,
   ROUNDNESS,
   VERTICAL_ALIGN,
 } from "../constants";
@@ -567,25 +568,25 @@ export const actionChangeFontSize = register({
         group="font-size"
         options={[
           {
-            value: 16,
+            value: FONT_SIZE.small,
             text: t("labels.small"),
             icon: FontSizeSmallIcon,
             testId: "fontSize-small",
           },
           {
-            value: 20,
+            value: FONT_SIZE.medium,
             text: t("labels.medium"),
             icon: FontSizeMediumIcon,
             testId: "fontSize-medium",
           },
           {
-            value: 28,
+            value: FONT_SIZE.large,
             text: t("labels.large"),
             icon: FontSizeLargeIcon,
             testId: "fontSize-large",
           },
           {
-            value: 36,
+            value: FONT_SIZE.veryLarge,
             text: t("labels.veryLarge"),
             icon: FontSizeExtraLargeIcon,
             testId: "fontSize-veryLarge",

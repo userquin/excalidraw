@@ -6,6 +6,7 @@ import {
 import {
   DEFAULT_FONT_FAMILY,
   DEFAULT_FONT_SIZE,
+  FONT_SIZE,
   ENV,
   VERTICAL_ALIGN,
 } from "./constants";
@@ -205,7 +206,7 @@ const chartXLabels = (
         y: y + BAR_GAP / 2,
         width: BAR_WIDTH,
         angle: 5.87,
-        fontSize: 16,
+        fontSize: FONT_SIZE.small,
         textAlign: "center",
         verticalAlign: "top",
       });

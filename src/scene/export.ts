@@ -172,6 +172,7 @@ export const exportToSvg = async (
     offsetX: -minX + exportPadding,
     offsetY: -minY + exportPadding,
     exportWithDarkMode: appState.exportWithDarkMode,
+    viewBackgroundColor: appState.viewBackgroundColor,
   });
 
   return svgRoot;

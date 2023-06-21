@@ -96,7 +96,14 @@ export const THEME = {
 
 export const WINDOWS_EMOJI_FALLBACK_FONT = "Segoe UI Emoji";
 
-export const DEFAULT_FONT_SIZE = 20;
+export const FONT_SIZE = {
+  small: 16,
+  medium: 20,
+  large: 28,
+  veryLarge: 36,
+} as const;
+
+export const DEFAULT_FONT_SIZE = FONT_SIZE.medium;
 export const DEFAULT_FONT_FAMILY: FontFamilyValues = FONT_FAMILY.Virgil;
 export const DEFAULT_TEXT_ALIGN = "left";
 export const DEFAULT_VERTICAL_ALIGN = "top";
@@ -295,3 +302,6 @@ export const DEFAULT_SIDEBAR = {
   name: "default",
   defaultTab: LIBRARY_SIDEBAR_TAB,
 } as const;
+
+export const TEXT_OUTLINE_DEFAULT_WIDTH = 2;
+export const TEXT_OUTLINE_CONTRAST_THRESHOLD = 0.62;

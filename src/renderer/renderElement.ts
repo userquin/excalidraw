@@ -30,14 +30,17 @@ import { RenderConfig } from "../scene/types";
 import { distance, getFontString, getFontFamilyString, isRTL } from "../utils";
 import { getCornerRadius, isPathALoop, isRightAngle } from "../math";
 import rough from "roughjs/bin/rough";
-import { AppState, BinaryFiles, Zoom } from "../types";
+import { AppState, BinaryFiles, NormalizedZoomValue, Zoom } from "../types";
 import { getDefaultAppState } from "../appState";
 import {
   BOUND_TEXT_PADDING,
+  FONT_SIZE,
   MAX_DECIMALS_FOR_SVG_EXPORT,
   MIME_TYPES,
   ROUGHNESS,
   SVG_NS,
+  TEXT_OUTLINE_CONTRAST_THRESHOLD,
+  TEXT_OUTLINE_DEFAULT_WIDTH,
 } from "../constants";
 import { getStroke, StrokeOptions } from "perfect-freehand";
 import {
@@ -49,6 +52,31 @@ import {
   getBoundTextMaxWidth,
 } from "../element/textElement";
 import { LinearElementEditor } from "../element/linearElementEditor";
+import { COLOR_PALETTE, getContrastingBWColor } from "../colors";
+
+/** @returns null if outline should be disabled */
+export const getTextOutlineColor = (
+  strokeColor: ExcalidrawElement["strokeColor"],
+  viewBackgroundColor: AppState["viewBackgroundColor"] | null,
+) => {
+  return getContrastingBWColor(strokeColor, TEXT_OUTLINE_CONTRAST_THRESHOLD) ===
+    "white"
+    ? viewBackgroundColor || COLOR_PALETTE.white
+    : null;
+};
+
+export const getTextOutlineWidth = (
+  fontSize: ExcalidrawTextElement["fontSize"],
+  zoom: NormalizedZoomValue,
+) => {
+  const normalizedZoom = Math.max(1, zoom);
+  const width = Math.max(
+    TEXT_OUTLINE_DEFAULT_WIDTH / 2,
+    TEXT_OUTLINE_DEFAULT_WIDTH / normalizedZoom,
+  );
+
+  return width * (fontSize / FONT_SIZE.medium);
+};
 
 // using a stronger invert (100% vs our regular 93%) and saturate
 // as a temp hack to make images in dark theme look closer to original
@@ -338,7 +366,26 @@ const drawElementOnCanvas = (
           element.lineHeight,
         );
         const verticalOffset = element.height - element.baseline;
+
+        const textOutlineColor = getTextOutlineColor(
+          element.strokeColor,
+          renderConfig.viewBackgroundColor,
+        );
+
         for (let index = 0; index < lines.length; index++) {
+          if (textOutlineColor) {
+            context.strokeStyle = textOutlineColor;
+            context.lineWidth = getTextOutlineWidth(
+              element.fontSize,
+              renderConfig.zoom.value,
+            );
+
+            context.strokeText(
+              lines[index],
+              horizontalOffset,
+              (index + 1) * lineHeightPx - verticalOffset,
+            );
+          }
           context.fillText(
             lines[index],
             horizontalOffset,
@@ -1128,6 +1175,7 @@ export const renderElementToSvg = (
   files: BinaryFiles,
   offsetX: number,
   offsetY: number,
+  viewBackgroundColor: AppState["viewBackgroundColor"],
   exportWithDarkMode?: boolean,
 ) => {
   const [x1, y1, x2, y2] = getElementAbsoluteCoords(element);
@@ -1396,6 +1444,39 @@ export const renderElementToSvg = (
             ? "end"
             : "start";
         for (let i = 0; i < lines.length; i++) {
+          const textOutlineColor = getTextOutlineColor(
+            element.strokeColor,
+            viewBackgroundColor,
+          );
+
+          if (textOutlineColor) {
+            // create a text stroke
+            const stroke = svgRoot.ownerDocument!.createElementNS(
+              SVG_NS,
+              "text",
+            );
+            stroke.textContent = lines[i];
+            stroke.setAttribute("x", `${horizontalOffset}`);
+            stroke.setAttribute("y", `${i * lineHeightPx}`);
+            stroke.setAttribute("font-family", getFontFamilyString(element));
+            stroke.setAttribute("font-size", `${element.fontSize}px`);
+            stroke.setAttribute("fill", element.strokeColor);
+            stroke.setAttribute("stroke", textOutlineColor);
+            stroke.setAttribute(
+              "stroke-wiidth",
+              `${getTextOutlineWidth(
+                element.fontSize,
+                1 as NormalizedZoomValue,
+              )}px`,
+            );
+            stroke.setAttribute("text-anchor", textAnchor);
+            stroke.setAttribute("style", "white-space: pre;");
+            stroke.setAttribute("direction", direction);
+            stroke.setAttribute("dominant-baseline", "text-before-edge");
+            node.appendChild(stroke);
+          }
+
+          // create a text fill
           const text = svgRoot.ownerDocument!.createElementNS(SVG_NS, "text");
           text.textContent = lines[i];
           text.setAttribute("x", `${horizontalOffset}`);

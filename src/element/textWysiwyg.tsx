@@ -44,6 +44,10 @@ import { actionZoomIn, actionZoomOut } from "../actions/actionCanvas";
 import App from "../components/App";
 import { LinearElementEditor } from "./linearElementEditor";
 import { parseClipboard } from "../clipboard";
+import {
+  getTextOutlineColor,
+  getTextOutlineWidth,
+} from "../renderer/renderElement";
 
 const getTransform = (
   width: number,
@@ -297,6 +301,31 @@ export const textWysiwyg = ({
       if (isTestEnv()) {
         editable.style.fontFamily = getFontFamilyString(updatedTextElement);
       }
+
+      const textOutlineColor = getTextOutlineColor(
+        updatedTextElement.strokeColor,
+        appState.viewBackgroundColor,
+      );
+
+      if (textOutlineColor) {
+        // text-shadow must be around half of the outline width
+        const textShadowWidth =
+          getTextOutlineWidth(
+            updatedTextElement.fontSize,
+            appState.zoom.value,
+          ) / 2;
+        const p = `${textShadowWidth}px`;
+        const n = `-${textShadowWidth}px`;
+
+        editable.style.setProperty(
+          "text-shadow",
+          `${n} ${n} 0 ${textOutlineColor}, ${p} ${n} 0 ${textOutlineColor},
+          ${n} ${p} 0 ${textOutlineColor}, ${p} ${p} 0 ${textOutlineColor}`,
+        );
+      } else {
+        editable.style.removeProperty("text-shadow");
+      }
+
       mutateElement(updatedTextElement, { x: coordX, y: coordY });
     }
   };

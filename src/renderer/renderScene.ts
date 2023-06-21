@@ -1135,11 +1135,13 @@ export const renderSceneToSvg = (
     offsetX = 0,
     offsetY = 0,
     exportWithDarkMode = false,
+    viewBackgroundColor,
   }: {
     offsetX?: number;
     offsetY?: number;
     exportWithDarkMode?: boolean;
-  } = {},
+    viewBackgroundColor: AppState["viewBackgroundColor"];
+  },
 ) => {
   if (!svgRoot) {
     return;
@@ -1155,6 +1157,7 @@ export const renderSceneToSvg = (
           files,
           element.x + offsetX,
           element.y + offsetY,
+          viewBackgroundColor,
           exportWithDarkMode,
         );
       } catch (error: any) {
