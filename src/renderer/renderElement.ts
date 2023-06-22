@@ -34,7 +34,6 @@ import { AppState, BinaryFiles, NormalizedZoomValue, Zoom } from "../types";
 import { getDefaultAppState } from "../appState";
 import {
   BOUND_TEXT_PADDING,
-  FONT_SIZE,
   MAX_DECIMALS_FOR_SVG_EXPORT,
   MIME_TYPES,
   ROUGHNESS,
@@ -59,6 +58,10 @@ export const getTextOutlineColor = (
   strokeColor: ExcalidrawElement["strokeColor"],
   viewBackgroundColor: AppState["viewBackgroundColor"] | null,
 ) => {
+  if (strokeColor === "transparent") {
+    return COLOR_PALETTE.black;
+  }
+
   return getContrastingBWColor(strokeColor, TEXT_OUTLINE_CONTRAST_THRESHOLD) ===
     "white"
     ? viewBackgroundColor || COLOR_PALETTE.white
@@ -75,7 +78,9 @@ export const getTextOutlineWidth = (
     TEXT_OUTLINE_DEFAULT_WIDTH / normalizedZoom,
   );
 
-  return width * (fontSize / FONT_SIZE.medium);
+  // arbitrary scaling factor that looks good
+  const scalingFactor = 80;
+  return width * Math.max(1, fontSize / scalingFactor);
 };
 
 // using a stronger invert (100% vs our regular 93%) and saturate
