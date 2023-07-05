@@ -327,6 +327,8 @@ import { activeConfirmDialogAtom } from "./ActiveConfirmDialog";
 import { actionWrapTextInContainer } from "../actions/actionBoundText";
 import BraveMeasureTextError from "./BraveMeasureTextError";
 import { activeEyeDropperAtom } from "./EyeDropper";
+import { LaserToolOverlay } from "./LaserTool/LaserTool";
+import { LaserPathManager } from "./LaserTool/LaserPathManager";
 
 const AppContext = React.createContext<AppClassProperties>(null!);
 const AppPropsContext = React.createContext<AppProps>(null!);
@@ -447,6 +449,8 @@ class App extends React.Component<AppProps, AppState> {
   lastPointerDown: React.PointerEvent<HTMLElement> | null = null;
   lastPointerUp: React.PointerEvent<HTMLElement> | PointerEvent | null = null;
   lastViewportPosition = { x: 0, y: 0 };
+
+  laserPathManager: LaserPathManager = new LaserPathManager(this);
 
   constructor(props: AppProps) {
     super(props);
@@ -862,6 +866,7 @@ class App extends React.Component<AppProps, AppState> {
                         <div className="excalidraw-textEditorContainer" />
                         <div className="excalidraw-contextMenuContainer" />
                         <div className="excalidraw-eye-dropper-container" />
+                        <LaserToolOverlay manager={this.laserPathManager} />
                         {selectedElement.length === 1 &&
                           !this.state.contextMenu &&
                           this.state.showHyperlinkPopup && (
@@ -4142,6 +4147,11 @@ class App extends React.Component<AppProps, AppState> {
       setCursor(this.canvas, CURSOR_TYPE.AUTO);
     } else if (this.state.activeTool.type === "frame") {
       this.createFrameElementOnPointerDown(pointerDownState);
+    } else if (this.state.activeTool.type === "laser") {
+      this.laserPathManager.startPath([
+        pointerDownState.lastCoords.x,
+        pointerDownState.lastCoords.y,
+      ]);
     } else if (
       this.state.activeTool.type !== "eraser" &&
       this.state.activeTool.type !== "hand"
@@ -5160,6 +5170,13 @@ class App extends React.Component<AppProps, AppState> {
       if (isEraserActive(this.state)) {
         this.handleEraser(event, pointerDownState, pointerCoords);
         return;
+      }
+
+      if (this.state.activeTool.type === "laser") {
+        this.laserPathManager.addPointToPath([
+          pointerCoords.x,
+          pointerCoords.y,
+        ]);
       }
 
       const [gridX, gridY] = getGridPoint(
@@ -6313,6 +6330,11 @@ class App extends React.Component<AppProps, AppState> {
           : unbindLinearElements)(
           getSelectedElements(this.scene.getNonDeletedElements(), this.state),
         );
+      }
+
+      if (activeTool.type === "laser") {
+        this.laserPathManager.endPath();
+        return;
       }
 
       if (!activeTool.locked && activeTool.type !== "freedraw") {
